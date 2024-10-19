@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "linuxdir.h": "c",
+        "linuxfile.h": "c",
+        "common.h": "c"
+    }
+}

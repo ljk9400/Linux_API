@@ -1,0 +1,67 @@
+## 子模块操作   
+   
+### 子模块和子树区别   
+1.4.1 Git Submodule（子模块）:   
+- 子模块实际上是一个独立的Git仓库，它被嵌入到你的主仓库中作为引用。   
+- 子模块在主仓库中以特定的提交指针存在。当你克隆一个包含子模块的仓库时，子模块目录会存在，但是目录会空缺，除非你特别初始化和更新子模块。   
+- 子模块适用于更多的项目版本控制，允许你切换到子模块的特定提交。   
+- 当主仓库拉取更新时，子模块仍然保持在原来的提交上，除非你明确地更新子模块。   
+- 子模块对于多项目共享代码很有用，但它们可能会使仓库的克隆、拉取和更新过程变得稍微复杂一些。   
+1.4.2 Git Subtree（子树）:   
+- 子树允许你将一个外部仓库作为一个目录置于你的主仓库中，它包含外部仓库的所有历史和提交。   
+- 子树不依赖于Git仓库的引用或链接。这意味着克隆主仓库会自动包含子树的内容和历史，不需要额外的初始化步骤。   
+- 子树更容易管理，因为主仓库包含了子树的所有内容，而无需考虑子模块的指针和单独的仓库。   
+- 更新子树简单，因为你只需要从子树仓库拉取变更并合并到你的主仓库。   
+- 子树比较适合于那些需要包含并可能修改子仓库代码的场景。   
+   
+- 子模块搭建   
+1、在服务层工程中添加子模块：在每个服务层工程的仓库中，你可以通过以下命令将util库作为子模块添加到特定的文件夹：   
+git submodule add <util库的仓库URL> <路径/到/子模块/文件夹>   
+该命令会在服务层工程中创建一个包含util库的子文件夹，并且添加一个 .gitmodules 文件来跟踪子模块的信息。   
+克隆含有子模块的项目：当其他开发人员或者你在新环境中克隆含有子模块的服务层工程时，需要执行下面的命令以2、初始化和更新工程中的子模块：   
+git clone <服务层工程的仓库URL>   
+cd <服务层工程文件夹>   
+git submodule update --init --recursive   
+这些命令会拉取子模块的当前提交。   
+   
+3、更新子模块：如果util库有更新，开发人员可以在服务层工程中通过以下命令来更新子模块到最新的提交：   
+git submodule update --remote   
+或者进入到具体的子模块目录中，手动拉取需要的版本。   
+工程中引用子模块：在服务层工程代码中，你可以通过包含子模块路径的方式来引用util库中的代码。   
+   
+拉取代码后   
+git submodule init 注册子模块，第一次   
+git submodule update 可以获取子模块代码   
+   
+- 子树搭建   
+1、在本地克隆的父仓库中添加远程仓库引用: 这个步骤与添加一个常规的 Git 远程仓库相似。使用下面的命令：   
+git remote add -f <subtree-remote-name> <subtree-repo-url>   
+其中 <subtree-remote-name> 是你给这个远程仓库的本地名称， <subtree-repo-url> 是远程仓库的 URL。   
+   
+2、使用 subtree add 将远程仓库作为子树添加到父项目中: 需要指定你希望将子仓库代码放置的本地子目录路径，以及要添加的子仓库分支。   
+git subtree add --prefix <path/to/subtree> <subtree-remote-name> <branch> --squash   
+  - --prefix <path/to/subtree> 指明了你希望将子树内容放置在父仓库中的目录。   
+  - <subtree-remote-name> 是你之前定义的远程仓库引用名。   
+  - <branch> 表示子仓库中需要集成的分支名，通常是 main 或 master。   
+  - --squash 参数意味着你将子树的历史压缩成一个单独的提交。   
+   
+3、后续的 subtree 操作: 随着项目的进展，你可能需要从子树的远程仓库拉取更新，或是将本地对子树的修改推送回远程仓库。对于这些操作，你也可以使用 git subtree。   
+  - 拉取子树的更新：   
+git subtree pull --prefix <path/to/subtree> <subtree-remote-name> <branch> --squash   
+  - 推送本地更改到子树的远程仓库：   
+git subtree push --prefix <path/to/subtree> <subtree-remote-name> <branch>   
+   
+   
+- 子模块初始化   
+1、拉取子模块内容   
+初始化仓库并添加子模块后，你可以使用以下命令来拉取所有子模块的内容：   
+git submodule update --init --recursive   
+这个命令会克隆并检出 .gitmodules 文件中列出的所有子模块。   
+   
+2、如果子模块有更新，你也可以使用以下命令来更新它们：   
+git submodule update --remote   
+或者，如果你想递归地更新所有子模块：   
+   
+git submodule update --init --recursive   
+   
+3、 如果子模块没有被更新拉取可以删除子模块目录重新拉

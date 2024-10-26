@@ -9,7 +9,7 @@ option(COMPILE_BASE_RESOURCE "Compile base_reso module" OFF)
 option(COMPILE_BASE_NETWORK  "Compile base_netw module" OFF)
 option(COMPILE_CLOCK_TIME    "Compile cloc module" OFF)
 option(COMPILE_TINY    "Compile tiny module" OFF)
-option(COMPILE_COMMON  "Compile tiny module" ON)
+option(COMPILE_COMMON  "Compile common module" ON)
 
 
 # 根据选项添加子目录

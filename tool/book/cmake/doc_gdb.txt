@@ -1,0 +1,87 @@
+### GDB工具  
+
+5.1 命令   
+B (break) 断点当前位置, B+line 断点需要的line行   
+R (run)开始执行   
+C 执行到下个断点   
+N (next)单步执行   
+S 跳入执行   
+P（print） 查看变量   
+    
+1. 查看某线称崩溃   
+info threads   
+    
+2. 切换到线程6：   
+thread 6   
+    
+3. 查看当前线程的堆栈跟踪信息：   
+bt   
+   
+5.2 GDB多线程调试   
+shell的命令：   
+  (1)查看当前运行的进程：ps aux | grep book   
+  (2)查看当前运行的轻量级进程：ps -aL | grep book   
+  (3)查看主线程和子线程的关系：pstree -p 主线程id   
+    
+ gdb的命令：   
+  (1)查看可切换调试的线程：info threads   
+  (2)切换调试的线程：thread 线程id   
+  (3)只运行当前线程：set scheduler-locking on   
+  (4)运行全部的线程：set scheduler-locking off    
+  (5)指定某线程执行某gdb命令：thread apply 线程id gdb_cmd   
+  Eg:thread apply 3 n  只让线程3执行next   
+      (6)全部的线程执行某gdb命令：thread apply all gdb_cmd   
+    
+5.3 GDB内存查询   
+1、内存查看   
+x/3uh 0x54320:从地址0x54320开始，读取3个双字节（h），以十六进制方式显示（x）   
+3可以替换成任意正整数   
+u可以替换成：   
+d 按十进制格式显示变量 x 按十六进制格式显示变量 a 按十六进制格式显示变量 u 按十六进制格式显示无符号整型 o 按八进制格式显示变量 t 按二进制格式显示变量 c 按字符格式显示变量 f 按浮点数格式显示变量   
+h可以替换成：   
+b表示单字节，h表示双字节，w表示四字 节，g表示八字节   
+    
+
+
+### valgrind 工具   
+在树莓派上用 valgrind  这个工具可以查查有没有没释放的内存   
+    
+
+
+### core dump工具   
+1.  查看限制   
+ulimit -c   
+ 如果显示 1024 那么说明 coredump 已经被开启。   
+1024 限制产生的 core 文件的大小不能超过 1024kb，可以使用参数unlimited，取消该限制   
+ulimit -c unlimited   
+    
+2. 查询core dump文件路径：   
+方法1：   
+cat /proc/sys/kernel/core_pattern   
+方法2：   
+/sbin/sysctl kernel.core_pattern   
+   
+3. 修改core dump文件路径：   
+方法1：临时修改：修改/proc/sys/kernel/core_pattern文件，但/proc目录本身是动态加载的，每次系统重启都会重新加载，因此这种方法只能作为临时修改。   
+/proc/sys/kernel/core_pattern   
+例：echo ‘/var/log/%e.core.%p’ > /proc/sys/kernel/core_pattern   
+
+方法2：永久修改：使用sysctl -w name=value命令。   
+例：/sbin/sysctl -w kernel.core_pattern=/var/log/%e.core.%   
+    
+
+ 4、gdb+core文件 
+1、启动 GDB 并指定可执行程序：
+gdb ./your_executable
+
+2、在 GDB 中，使用 core 命令来加载 core dump 文件：
+(gdb) core your_core_file
+
+3、如果你需要在运行时传递参数给程序，可以在 GDB 中使用 run 命令并附加所需的参数：
+(gdb) run arg1 arg2 arg3
+
+4、如果你已经加载了 core dump 文件，并且想在调试时运行程序并传递参数，可以这样做：
+(gdb) set args arg1 arg2 arg3
+(gdb) run
+
+

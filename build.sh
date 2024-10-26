@@ -22,15 +22,27 @@ function prepare_build_dir() {
     if [ -d "build" ]; then
         echo "清空 build 目录"
         rm -rf build/*
-        rm -rf bin/*
     else
         echo "创建 build 目录"
         mkdir build
+    fi
+
+    if [ -d "bin" ]; then
+        echo "清空 bin 目录"
+        rm -rf bin/*
+    else
+        echo "创建 bin 目录"
+        mkdir bin
     fi
 }
 
 # 配置 CMake
 function configure_cmake() {
+    if ! command -v cmake &> /dev/null; then
+        echo "cmake 未安装，请先安装 cmake"
+        exit 1
+    fi
+
     case "$1" in
         f)
             cmake -DCOMPILE_BASE_FILE=ON ..
@@ -67,6 +79,12 @@ function configure_cmake() {
 function build_project() {
     prepare_build_dir
     cd build || exit
+
+    if ! command -v make &> /dev/null; then
+        echo "make 未安装，请先安装 make"
+        exit 1
+    fi
+
     configure_cmake "$1"
     make
 }
@@ -76,9 +94,15 @@ function clean_project() {
     if [ -d "build" ]; then
         echo "清空 build 目录"
         rm -rf build/*
-        rm -rf bin/*
     else
         echo "build 目录不存在"
+    fi
+
+    if [ -d "bin" ]; then
+        echo "清空 bin 目录"
+        rm -rf bin/*
+    else
+        echo "bin 目录不存在"
     fi
 }
 

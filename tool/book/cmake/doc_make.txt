@@ -1,0 +1,144 @@
+## makefile   
+   
+2.1 makefile模板
+   
+2.2 判断语句   
+ifeq           
+ifeq (变量1, 变量2)   
+    # 条件成立时执行的操作   
+else   
+    # 条件不成立时执行的操作   
+endif   
+ifneq           
+ifneq (变量1, 变量2)   
+    # 条件成立时执行的操作   
+else   
+    # 条件不成立时执行的操作   
+endif   
+ifdef           
+ifdef 变量   
+    # 变量已定义时执行的操作   
+else   
+    # 变量未定义时执行的操作   
+endif   
+ifndef     
+ifndef 变量   
+    # 变量未定义时执行的操作   
+else   
+    # 变量已定义时执行的操作   
+endif   
+   
+2.3 VPATH和vpath   
+（1）VPATH：
+VPATH是一个Makefile中的特殊变量，用于设置搜索路径。通过VPATH，可以指定Make命令在指定的目录中搜索依赖文件和目标文件。   
+例如：VPATH = dir1:dir2:dir3 
+
+（2）vpath：
+vpath是Makefile中的一个函数，用于临时设置搜索路径。与VPATH不同，vpath是一个函数调用，可以在规则中设置特定的搜索路径。   
+例如： vpath %.c src   
+这样，对于所有以.c为扩展名的文件，在查找时会在src目录中搜索。   
+
+（3）总结：
+VPATH是一个全局的搜索路径设置，适用于整个Makefile，而vpath是局部的搜索路径设置，适用于特定的规则。在大多数情况下，推荐使用vpath来临时设置搜索路径，而不是修改全局的VPATH。   
+
+2.4  多文件demo   
+1、单文件源，单文件头   
+project/   
+  |- src/   
+  |   |- file1.c   
+  |   |- file2.c   
+  |- include/   
+  |   |- header1.h   
+  |   |- header2.h   
+  |- obj/   
+  |- bin/  
+ 
+makefile 写法  
+CC = gcc   
+CFLAGS = -Wall -Wextra -g   
+LDFLAGS =   
+TARGET = bin/myprogram   
+SRCDIR = src   
+INCDIR = include   
+OBJDIR = obj   
+SOURCES := $(wildcard $(SRCDIR)/*.c)   
+OBJECTS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SOURCES))   
+.PHONY: all clean   
+all: $(TARGET)   
+$$(TARGET): $$(OBJECTS)   
+    $(CC) $(LDFLAGS) $^ -o $@   
+$$(OBJDIR)/%.o: $$(SRCDIR)/%.c   
+    $(CC) $(CFLAGS) -I$(INCDIR) -c $< -o $@   
+clean:   
+    rm -f $(OBJECTS) $(TARGET)   
+
+2、多文件源，多文件头   
+project/    
+|- aes/   
+ | |- file1.c   
+ | |- file2.c   
+ | |- header1.h   
+ | |- header2.h   
+|- hasfh/   
+  | |- file1.c   
+  | |- file2.c   
+  | |- header1.h   
+  | |- header2.h    
+|- obj/   
+|- bin/ 
+
+makefile 写法 
+ CC = gcc   
+CFLAGS = -Wall -Wextra -g   
+LDFLAGS =   
+TARGET = bin/myprogram   
+SRCDIRS = aes hasfh   
+INCDIRS = aes hasfh   
+OBJDIR = obj   
+SOURCES := $(wildcard $(addsuffix /*.c, $(SRCDIRS)))   
+OBJECTS := $(patsubst %.c,$(OBJDIR)/%.o,$(notdir $(SOURCES)))   
+.PHONY: all clean   
+all: $(TARGET)   
+$$(TARGET): $$(OBJECTS)   
+    $(CC) $(LDFLAGS) $^ -o $@   
+$$(OBJDIR)/%.o: $$(addsuffix /%.c, $(SRCDIRS))   
+    $(CC) $(CFLAGS) -I$(addsuffix /, $(INCDIRS)) -c $< -o $@   
+clean:   
+    rm -f $(OBJECTS) $(TARGET)   
+
+3、多文件源、多文件头   
+project/    
+|- aes/   
+ | |- file1.c   
+ | |- file2.c   
+ | |- header1.h   
+ | |- header2.h   
+|- hasfh/   
+  | |- file1.c   
+  | |- file2.c   
+  | |- header1.h   
+  | |- header2.h    
+|- main.c   
+|- obj/   
+|- bin/  
+ 
+makefile  写法 
+CC = gcc   
+CFLAGS = -Wall -Wextra -g   
+LDFLAGS =   
+TARGET = bin/myprogram   
+SRCDIRS = aes hasfh   
+INCDIRS = aes hasfh   
+OBJDIR = obj   
+SOURCES := $(wildcard $(addsuffix /*.c, $(SRCDIRS))) main.c   
+OBJECTS := $(patsubst %.c,$(OBJDIR)/%.o,$(notdir $(SOURCES)))   
+.PHONY: all clean   
+all: $(TARGET)   
+$$(TARGET): $$(OBJECTS)   
+    $(CC) $(LDFLAGS) $^ -o $@   
+$$(OBJDIR)/%.o: $$(addsuffix /%.c, $(SRCDIRS)) main.c   
+    $(CC) $(CFLAGS) -I$(addsuffix /, $(INCDIRS)) -c $< -o $@   
+clean:   
+    rm -f $(OBJECTS) $(TARGET)   
+   
+   

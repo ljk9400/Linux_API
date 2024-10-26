@@ -1,0 +1,58 @@
+### gitlab搭建   
+https://developer.aliyun.com/article/922952
+https://blog.csdn.net/liyuchenii/article/details/136062204
+
+2.1 镜像下载   
+docker pull gitlab/gitlab-ce:latest   
+docker images   
+版本区别   
+- latest: 最新稳定版本的 GitLab 社区版。   
+- nightly: 每夜构建版本，反映了最新的开发进度。   
+- rc: 发布候选版本，用于最终测试稳定性和功能。   
+- <version-tag>: 特定版本的 GitLab，用于精确控制使用的 GitLab 版本。   
+   
+2.2 启动镜像   
+docker run -d --name gitlab gitlab/gitlab-ce   
+docker run -d --name gitlab --restart always  gitlab/gitlab-ce    
+docker run -d --name gitlab --restart always \   
+    -p 8443:443 \   
+    -p 8080:80 \   
+    -p 8022:22 \   
+    -v /mydata/gitlab/data/etc:/etc/gitlab \   
+    -v /mydata/gitlab/data/log:/var/log/gitlab \   
+    -v /mydata/gitlab/data/opt:/var/opt/gitlab \   
+    /gitlab/gitlab-ce:latest   
+-restart always：不管退出状态码是什么，容器都会被重新启动   
+-p:端口映射：宿主机端口:容器端口   
+-v:文件挂载：宿主机文件:容器文件   
+除了 always，Docker 还提供了其他几种重启策略：   
+- no：容器不会在退出时自动重启。这是默认设置。   
+- on-failure[:max-retry]：仅在容器非正常退出时（退出状态非0）重启容器。可以选择性地附加最大重启尝试次数（max-retry）。   
+- unless-stopped：容器总是会自动重启，除非它被人工停止。如果在 Docker 重新启动时容器是停止状态，则该容器不会被自动启动。   
+[图片]   
+看到容器里80和22端口监听，在run是将80端口映射到本地，否则http://local:80无法访问,单http://容器ip:80，千万别瞎映射，否则出一堆问题   
+[图片]   
+要让docker容器运行一段时间，(health: starting)变为(healthy)   
+   
+/etc/gitlab：这个卷是用来存储 GitLab 的配置文件的。 目录内通常包含 gitlab.rb 文件，以及其他的 GitLab 配置文件。   
+/var/log/gitlab：该卷用于存放 GitLab 服务的日志文件。GitLab 和它的组件（比如 GitLab Rails, GitLab Shell, GitLab Workhorse, NGINX, PostgreSQL等）的日志都会被写入到 目录下。   
+/var/opt/gitlab：这个卷是 GitLab 用来存储数据的地方，包括数据库文件、仓库数据（repositories）、上传的文件、LFS 对象、备份等。    
+   
+2.3 误区知识   
+我们一直启动时使用 docker run -it 镜像 bash ，生成容器，但是it 产生伪终端就会把gitlab服务替换导致服务起不来。gitlab服务是一直在运行，只需docker  -d 镜像服务在后台运行.   
+docker run -it gitlab/gitlab-ce bash   
+这个命令使用 -it 参数来运行容器。-i 或 --interactive 保持容器的标准输入开放，而 -t 或 --tty 分配一个伪终端。这个命令的主要目的是让你能够与运行中的容器进行交互。   
+当你在命令末尾指定 bash 时，你实际上是覆盖了容器的默认启动命令（即 GitLab 的启动命令）。这意味着，容器启动后会直接进入一个 bash shell 而不是执行其默认的启动流程（如启动 GitLab）。因此，你会发现 GitLab 没有自动启动，因为容器被用来提供一个交互式的 shell 环境而不是运行 GitLab。   
+docker run -d gitlab/gitlab-ce   
+-d 参数或者 --detach 表示在后台模式运行容器。这意味着 Docker 会按照 Dockerfile 中定义的默认命令来启动容器。对于 gitlab/gitlab-ce 镜像来说，这个默认命令涉及启动 GitLab 和所有相关的服务。因此，在这种模式下，GitLab 能够正常启动，因为容器没有被指定运行一个交互式的 shell，而是执行其默认的启动脚本。   
+   
+2.4 默认账户密码   
+2.4.1 账号   
+/etc/gitlab/initial_root_password   
+账号root，密码查看目录下面   
+   
+2.4.2 代码下载   
+git@22425765a523:my_group_a/my_code.git   
+将容器主机名改为ip   
+git clone http://172.17.0.5:my_group_a/my_code.git   
+注意现将ssh公钥填上去   
